@@ -39,6 +39,7 @@ export class SearchComponent implements OnInit,AfterViewInit {
     }
     
     refresh(can: Msg) {
+        if(this.userManager.noKeys()) return;
         if (can.update) {
             this.userManager.readUsers()
             .then(users=>{
@@ -48,6 +49,7 @@ export class SearchComponent implements OnInit,AfterViewInit {
     }
 
     delete(event) {
+        if(this.userManager.noKeys()) return;
         dialogs.confirm({
             title: "Sistema",
             message: "Borrar usuario?",
@@ -79,6 +81,7 @@ export class SearchComponent implements OnInit,AfterViewInit {
     }
 
     scanBarcode() {
+        if(this.userManager.noKeys()) return;
         this.userManager.setPasswordSchema('','').then(v=>console.log(v))
         // this.requestPermission()
         // .then(() => {

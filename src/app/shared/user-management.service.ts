@@ -12,10 +12,7 @@ export class UserManager {
     // Card is use only for key exchange purposes via QRcode
     private card: Card=null;
     private user:User=null;
-    private saveKeys:SaveKeys={
-        libs_key:null,
-        sjcl_key:null
-    };
+    
 
     constructor(private cryptograph:EncrypService){
     }
@@ -155,6 +152,9 @@ export class UserManager {
         }
         return false;
     }
+    noKeys():boolean{
+        return (this.cryptograph.saveKeys.libs_key && this.cryptograph.saveKeys.sjcl_key) ? true :false;
+    }
     /**
      * Entry or Endpoint of user creation
      * @param strSharebleKeys stringify object containing publicKey, symetricKey and id
@@ -245,10 +245,10 @@ export class UserManager {
         this.cryptograph.setSecureValue("users", newUsers);
     }
     private areKeysAvailable():Promise<boolean>{
-        if(!this.saveKeys || !this.saveKeys.libs_key || !this.saveKeys.sjcl_key ){
+        if(!this.cryptograph.saveKeys || !this.cryptograph.saveKeys.libs_key || !this.cryptograph.saveKeys.sjcl_key ){
             return Promise.resolve(false);
         }else{
-            let bool = this.saveKeys.libs_key.length&&this.saveKeys.sjcl_key.length?true:false;
+            let bool = this.cryptograph.saveKeys.libs_key.length&&this.cryptograph.saveKeys.sjcl_key.length?true:false;
             return Promise.resolve(bool);
         }
     }
@@ -276,12 +276,12 @@ export class UserManager {
         if( sjclParamsReady && libsParamReady ){
             let keyAndSalt_sjcl = this.cryptograph.createSjclKey2save(password,100000,sjclParam);
             let keyAndSalt_Libs:LibsKey = this.cryptograph.createLibsKey2save(password,libsParam.saltHexString);
-            this.saveKeys.libs_key=keyAndSalt_Libs.keyHexString;
-            this.saveKeys.sjcl_key=keyAndSalt_sjcl.key;
+            this.cryptograph.saveKeys.libs_key=keyAndSalt_Libs.keyHexString;
+            this.cryptograph.saveKeys.sjcl_key=keyAndSalt_sjcl.key;
             return true;    
         }else{
-            this.saveKeys.libs_key=null;
-            this.saveKeys.sjcl_key=null;
+            this.cryptograph.saveKeys.libs_key=null;
+            this.cryptograph.saveKeys.sjcl_key=null;
             return false;
         }
     }

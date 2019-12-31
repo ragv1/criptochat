@@ -9,6 +9,10 @@ import { LibsParams, SjclParams, LibsKey, SaveKeys } from './Interfaces';
 })
 export class EncrypService {
 	private secureStorage = new SecureStorage();
+	public saveKeys:SaveKeys={
+        libs_key:null,
+        sjcl_key:null
+    };
 
 	constructor(private libsodium: LibsodiumService) {
 		let buffs = this.libsodium.random(128);
