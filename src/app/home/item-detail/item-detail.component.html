@@ -1,0 +1,24 @@
+<ActionBar>
+    <NavigationButton (tap)="onBackTap()" android.systemIcon="ic_menu_back"></NavigationButton>
+    <Label [text]="id"></Label>
+</ActionBar>
+
+<StackLayout>
+    <ListView margin-bottom="5" height="50%" padding="5" #list [items]="messages" separatorColor="transparent">
+        <ng-template let-item="item">
+            <GridLayout columns="*" rows="auto" class="msg">
+                <StackLayout [class]="filter(item.from)" orientation="horizontal" [horizontalAlignment]="align(item.from)">
+                   
+                    <Label [text]="item.message" class="msg_text" textWrap="true" verticalAlignment="top"></Label>
+                </StackLayout>
+            </GridLayout>
+        </ng-template>
+    </ListView>
+
+    <StackLayout #chatbox height="50">
+        <GridLayout columns="*,auto" style="padding: 10">
+            <TextField #textfield class="chatTextField"  row="0" col="0" rowspan="2" [(ngModel)]="message"></TextField>
+            <Button #btn class="chatBtn"  row="0" col="1" text="send" (tap)=chat(message)></Button>
+        </GridLayout>
+    </StackLayout>
+</StackLayout>

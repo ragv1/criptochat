@@ -1,0 +1,34 @@
+<ActionBar>
+    <Label text="Usuarios" ></Label>
+</ActionBar>
+
+<GridLayout class="page__content"  rows="2*,*,*" >
+
+    <Label row="0"  class="page__content-icon fas" text="&#xf007;"
+    [visibility]=" users.length ? 'collapsed' : 'visible' " ></Label>
+
+    <ListView [items]="users" row="0" rowspan="2" [visibility]=" users.length ? 'visible' : 'collapsed' " id="lview">
+        <ng-template let-item="item">
+            <StackLayout>
+                <StackLayout orientation="horizontal">
+                    <Image src="font://&#xf007;" class="userimage fas"></Image>
+                    <Label  class="username far" [nsRouterLink]="['../user', item.id]"
+                    [text]="item.displayname"></Label>
+                    <Button  text="Chat" class="-rounded-lg chatbutton">
+                        <FormattedString>
+                            <Span text="&#xf086;" class="fas t-15"></Span>
+                        </FormattedString>
+                    </Button>
+                    <Button text="Del" class="-rounded-lg delbutton" id="{{item.id}}" (tap)="delete($event)">
+                        <FormattedString>
+                            <Span text="&#xf2ed;" class="fas t-15"></Span>
+                        </FormattedString>
+                    </Button>
+                </StackLayout>
+            </StackLayout>
+        </ng-template>
+    </ListView>
+
+    <Button row="2" text="Agregar"  (tap)="scanBarcode()" ></Button>
+
+</GridLayout>

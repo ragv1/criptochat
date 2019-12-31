@@ -1,0 +1,18 @@
+<ActionBar>
+    <Label text="Configuracion" (longPress)="onLongPress($event)"></Label>
+</ActionBar>
+
+<GridLayout class="page__content" rows="*,*,*,*">
+    
+    <Label row="0" rowspan="3"  class="page__content-icon fas " [visibility]=" showBarcode ? 'collapsed' : 'visible' " 
+    text="&#xf029;"></Label>
+    <Image #qrCode row="0" rowspan="3" [visibility]=" showBarcode ? 'visible' : 'collapsed' "  ></Image>
+    
+    <ActivityIndicator row="1" color="red" width="100" height="100" [busy]="isBusy"></ActivityIndicator>
+
+    <Button row="3" (tap)="clearBarcode()" [visibility]=" showBarcode ? 'visible' : 'collapsed' " 
+    id="hidebarcode" text="TERMINAR"></Button>
+
+    <Button row="3" (tap)="generateBarcode()" id="barcode" text="GENERAR CODIGO" 
+    [visibility]=" showBarcode ? 'collapsed' : 'visible'  " ></Button>
+</GridLayout>

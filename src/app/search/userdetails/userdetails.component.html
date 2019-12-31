@@ -1,0 +1,12 @@
+<ActionBar>
+    <NavigationButton (tap)="onBackTap()" android.systemIcon="ic_menu_back"></NavigationButton>
+    <Label text='Usuario: {{id}}'></Label>
+</ActionBar>
+
+<GridLayout rows="*,*,*,*,*">
+    <TextField hint="Servidor" class="chatTextField"  row="0" col="0" [(ngModel)]="server"></TextField>
+    <TextField hint="Usuario" class="chatTextField"  row="1" col="0" [(ngModel)]="displayname" ></TextField>
+    
+    
+    <Button #btn class="chatBtn"  row="2" col="0" text="Guardar" (tap)=save()></Button>
+</GridLayout>
