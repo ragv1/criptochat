@@ -2,17 +2,14 @@ import { Injectable } from '@angular/core';
 import { SecureStorage } from "nativescript-secure-storage";
 import * as sjcl from "sjcl";
 import { LibsodiumService } from "./libsodium.service";
-import { LibsParams, SjclParams, LibsKey, SaveKeys } from './Interfaces';
+import { LibsKey, SaveKeys } from './Interfaces';
 
 @Injectable({
 	providedIn: 'root'
 })
 export class EncrypService {
 	private secureStorage = new SecureStorage();
-	public saveKeys:SaveKeys={
-        libs_key:null,
-        sjcl_key:null
-    };
+	public saveKeys:SaveKeys={ libs_key:null, sjcl_key:null };
 
 	constructor(private libsodium: LibsodiumService) {
 		let buffs = this.libsodium.random(128);
@@ -21,7 +18,7 @@ export class EncrypService {
 	removeSecure(key: string) {
 		this.secureStorage.removeSync({ key: key });
 	}
-	// TODO: CHANGE THE NAME AND INCLUDE LOCK FUNCTION
+	
 	setSecureValue(key: string, value: any):boolean {
 		if(!value) return false;
 		let valueString = JSON.stringify(value);
@@ -30,27 +27,14 @@ export class EncrypService {
 			value: valueString
 		});
 	}
-	// TODO: CHANGE THE NAME AND INCLUDE UNLOCK FUNCTION
+	
 	getSecureValue(key: string):Promise<any> {
 		return this.secureStorage.get({key: key})
 		.then(value=>{
 			return Promise.resolve(JSON.parse(value));
 		});
 	}
-	_getSecureValue(key: string):Promise<any> {
-		return this.secureStorage.get({key: key})
-		.then(value=>{
-			return Promise.resolve(JSON.parse(value));
-		});
-	}
-	_setSecureValue(key: string, value: any):boolean {
-		if(!value) return false;
-		let valueString = JSON.stringify(value);
-		return this.secureStorage.setSync({
-			key: key,
-			value: valueString
-		});
-	}
+
 	randomize(WORDS: number = 4, PARANOIA: number = 10) {
 		return sjcl.random.randomWords(WORDS, PARANOIA);
 	}
@@ -70,8 +54,8 @@ export class EncrypService {
 				iter: 100000 | iter,
 				iv: sjcl.codec.hex.fromBits(iv)
 			};
-
-			this._setSecureValue('sjclParam', defaults);
+			
+			this.setSecureValue('sjclParam', defaults);
 		}
 		let keyAndSalt = sjcl.misc.cachedPbkdf2(pass, savedParameters);
 		return {key:sjcl.codec.hex.fromBits(keyAndSalt.key) , salt: sjcl.codec.hex.fromBits(keyAndSalt.salt)}
@@ -81,7 +65,7 @@ export class EncrypService {
 	}
 	createLibsKey2save(pass:string, salt?:string):LibsKey{
 		let {hexString:keyHexString, saltHexString} = this.libsodium.keyFromPassword(pass,salt);
-		this._setSecureValue('libsParam', saltHexString);
+		this.setSecureValue('libsParam', saltHexString);
 		return { saltHexString, keyHexString}
 	}
 	createAsymetricKeyPair() {
@@ -98,16 +82,22 @@ export class EncrypService {
 		return "";
 	}
 
-	unlock(saveKeys?:any,content?:any){
+	async unlock(name:string):Promise<any[]>{
+		let content = await this.getSecureValue(name);
 		let strContent = JSON.stringify(content);
 		let bits = sjcl.codec.utf8String.toBits(strContent);
 		let encoded64 = sjcl.codec.base64.fromBits(bits);
-		return encoded64;
+		// return encoded64;
+		return []
     }
 
-	
-    lock(saveKeys:SaveKeys, content:any){
-
+	/**
+	 * Functions encrypts content with aes and salsa algorithm encryption
+	 * @param saveKeys keys objects containing two keys one for sjcl and other for libsodium
+	 * @param content thas the Object that will be stringify and encrypted
+	 */
+    async lock(name:string, content:any):Promise<string>{
+		return "";
     }
 
 
@@ -142,16 +132,6 @@ export class EncrypService {
 	 */
 
 
-}
-
-export interface Keys {
-	publicEcc: string,
-	privateEcc: string,
-	otherPublicEcc: string,
-	symetricMyKey: string,
-	symetricOtherKey: string,
-	ctHolder: string,
-	decrypted: boolean,
 }
 
 
