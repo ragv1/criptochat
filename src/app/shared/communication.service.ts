@@ -6,7 +6,7 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class CommunicationService {
 	
-	public communication = new BehaviorSubject<Msg>({ update: false });
+	public communication = new BehaviorSubject<Msg>({ text: "false" });
 
 	getMessage$() {
 		return this.communication.asObservable();
@@ -17,5 +17,5 @@ export class CommunicationService {
 }
 
 export interface Msg {
-	update: boolean;
+	text: string;
 }

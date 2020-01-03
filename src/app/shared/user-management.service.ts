@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EncrypService } from './encryp.service';
-import { Card, SharebleKeys, User, SaveKeys, SjclParams, LibsParams, LibsKey } from './Interfaces';
-import * as dialogs from "tns-core-modules/ui/dialogs";
-import { PromptResult } from 'tns-core-modules/ui/dialogs';
+import { Card, SharebleKeys, User} from './Interfaces';
+
 
 @Injectable({
     providedIn: "root"
@@ -138,7 +137,7 @@ export class UserManager {
     private destroyCard(){
         this.card=null;
     }
-       /**
+    /**
      * Creates a new user from a complete Card
      */
     private createUser():boolean{
@@ -152,9 +151,11 @@ export class UserManager {
         }
         return false;
     }
+
     noKeys():boolean{
-        return (this.cryptograph.saveKeys.libs_key && this.cryptograph.saveKeys.sjcl_key) ? true :false;
+        return (this.cryptograph.saveKeys.libs_key && this.cryptograph.saveKeys.sjcl_key) ? false : true;
     }
+
     /**
      * Entry or Endpoint of user creation
      * @param strSharebleKeys stringify object containing publicKey, symetricKey and id
@@ -171,6 +172,8 @@ export class UserManager {
             return new Promise(resolve=>resolve(false));
         }
      }
+
+
     /**
      * Entry point of user creation
      * Returns promise stringify object containing publicKey, symetricKey and id
@@ -208,13 +211,12 @@ export class UserManager {
         });
 	}
     /**
-     * Returns all currently available users
+     * Returns all currently available users if user were decrypted sucessfully
      */
-    readUsers():Promise<User[]>{
+    async readUsers():Promise<User[]>{
         return  this.cryptograph.getSecureValue("users")
-        .then(parsedUsersArray=>{
-            //let result =  await this.unlock(parsedUsersArray)
-            let result = <User[]>parsedUsersArray
+        .then(async cipherText=>{
+            let result =  await this.cryptograph.unlock(cipherText)
             return result? result:[];
         })
     }
@@ -244,82 +246,12 @@ export class UserManager {
     deleteUser(newUsers:User[]){
         this.cryptograph.setSecureValue("users", newUsers);
     }
-    private areKeysAvailable():Promise<boolean>{
-        if(!this.cryptograph.saveKeys || !this.cryptograph.saveKeys.libs_key || !this.cryptograph.saveKeys.sjcl_key ){
-            return Promise.resolve(false);
-        }else{
-            let bool = this.cryptograph.saveKeys.libs_key.length&&this.cryptograph.saveKeys.sjcl_key.length?true:false;
-            return Promise.resolve(bool);
-        }
-    }
-    private checkSjclParam(params:SjclParams):boolean{
-        if(params){
-            return (params.iter&&params.iv.length&&params.salt.length&&params.ks)? true : false;
-        }
-        return false;
-    }
-    private checkLibsParam(params:LibsParams):boolean{
-        if(params){
-            return (params.saltHexString)? true : false;
-        }
-        return false;
-    }
-    private async getParamsFor2saveKeys():Promise<{sjclParam:SjclParams, libsParam:LibsParams}>{
-        let sjclParam = await this.cryptograph._getSecureValue("sjclParam")
-        let libsParam = await this.cryptograph._getSecureValue("libsParam")
-        return Promise.resolve({sjclParam, libsParam});
-    }
-    private async create2SaveKeys(password:string):Promise<boolean>{
-        let {sjclParam, libsParam} = await this.getParamsFor2saveKeys();
-        let sjclParamsReady =  this.checkSjclParam(sjclParam);
-        let libsParamReady =  this.checkLibsParam(libsParam);
-        if( sjclParamsReady && libsParamReady ){
-            let keyAndSalt_sjcl = this.cryptograph.createSjclKey2save(password,100000,sjclParam);
-            let keyAndSalt_Libs:LibsKey = this.cryptograph.createLibsKey2save(password,libsParam.saltHexString);
-            this.cryptograph.saveKeys.libs_key=keyAndSalt_Libs.keyHexString;
-            this.cryptograph.saveKeys.sjcl_key=keyAndSalt_sjcl.key;
-            return true;    
-        }else{
-            this.cryptograph.saveKeys.libs_key=null;
-            this.cryptograph.saveKeys.sjcl_key=null;
-            return false;
-        }
-    }
-    initKeys(){
-        this.areKeysAvailable()
-        .then((available:boolean)=>{
-            if(!available){
-                return dialogs.prompt({
-                    title:"Sistema",
-                    message:"Inserta tu clave para continuar...",
-                    inputType:dialogs.inputType.password,
-                    okButtonText:"Aceptar",
-                    cancelable:false
-                })
-            }
-        })
-        .then((value:PromptResult)=>{
-            return this.create2SaveKeys(value.text)
-        })
-        .then(sucess=>{
-            if(sucess){ return}
-            dialogs.alert({
-                title:"Sistema",
-                message:"Bloqueado - clave equivocada",
-                okButtonText:"Aceptar"
-            });
-            
-        })
-        .catch(error=>{
-            console.log(error);
-        });
-        
-    }
 
+   
  
 
     async setPasswordSchema(oldPasswod:string, newPassword:string){
-        return this.cryptograph.unlock(null,{publicKey:"AAAAAA", privateKey:"babadejuanvosch+="})
+        return this.cryptograph.unlock( JSON.stringify({publicKey:"AAAAAA", privateKey:"babadejuanvosch+="}) )
         // TODO:
         // check if old parameters exist - if not ignore old password
         // create keys with old password

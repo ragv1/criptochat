@@ -12,7 +12,7 @@ import { User } from "../shared/Interfaces";
     selector: "Search",
     templateUrl: "./search.component.html"
 })
-export class SearchComponent implements OnInit,AfterViewInit {
+export class SearchComponent implements OnInit {
    
     pause: boolean = false;
     barcodescannerModule: any;
@@ -25,26 +25,27 @@ export class SearchComponent implements OnInit,AfterViewInit {
         this.barcodescannerModule = new BarcodeScanner();
     }
 
-    ngAfterViewInit(): void {
-        setTimeout(() => {
-            this.userManager.initKeys();
-        }, 3000);
-    }
-
     ngOnInit(): void {
         this.communication.getMessage$()
         .subscribe((value:Msg) => {
-            this.refresh(value)
+            this.eraseUsers(value);
+            this.refresh(value);
         });
     }
     
     refresh(can: Msg) {
         if(this.userManager.noKeys()) return;
-        if (can.update) {
+        if (can.text=="true") {
             this.userManager.readUsers()
             .then(users=>{
-                this.users = users
+                this.users = users;
             })
+        }
+    }
+
+    eraseUsers(msg:Msg){
+        if(msg.text=="user"){
+            this.users=[];
         }
     }
 
@@ -61,7 +62,7 @@ export class SearchComponent implements OnInit,AfterViewInit {
             let id = target.id;
             this.users = this.users.filter(user => id != user.id);
             this.userManager.deleteUser(this.users);
-            this.refresh({ update: true });
+            this.refresh({text:"true"});
         });
         
     }
@@ -81,6 +82,7 @@ export class SearchComponent implements OnInit,AfterViewInit {
     }
 
     scanBarcode() {
+        console.log(this.userManager.noKeys(), 'console.log')
         if(this.userManager.noKeys()) return;
         this.userManager.setPasswordSchema('','').then(v=>console.log(v))
         // this.requestPermission()
@@ -113,8 +115,9 @@ export class SearchComponent implements OnInit,AfterViewInit {
 
         // });
     }
+
     onLongPress($event){
-        console.log("loooooonnngDick")
+        console.log("loooooonnng")
     }
 
 
@@ -129,12 +132,10 @@ export class SearchComponent implements OnInit,AfterViewInit {
 
 const barcodeScannerOptions = {
     formats: "QR_CODE, EAN_13",
-    cancelLabel: "EXIT. Also, try the volume buttons!", // iOS only, default 'Close'
-    cancelLabelBackgroundColor: "#333333", // iOS only, default '#000000' (black)
     message: "Usa el boton de volumen para mas luz", // Android only, default is 'Place a barcode inside the viewfinder rectangle to scan it.'
     beepOnScan: true,             // Play or Suppress beep on scan (default true)
     fullScreen: true,             // Currently only used on iOS; with iOS 13 modals are no longer shown fullScreen by default
-    closeCallback: () => { console.log("Scanner Busted") }, // invoked when the scanner was closed (success or abort)
+    closeCallback: () => { console.log("Scanner Closed") }, // invoked when the scanner was closed (success or abort)
     resultDisplayDuration: 100,   // Android only, default 1500 (ms), set to 0 to disable echoing the scanned text
     orientation: "portrait",     // Android only, default undefined (sensor-driven orientation), other options: portrait|landscape
     openSettingsIfPermissionWasPreviouslyDenied: true, // On iOS you can send the user to the settings app if access was previously denied

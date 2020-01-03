@@ -31,7 +31,7 @@ export class UserdetailsComponent implements OnInit {
   }
   
   onBackTap(): void {
-    this.communication.sendMessage({update:true});
+    this.communication.sendMessage({text:"true"});
     this._routerExtensions.back();
   }
 
