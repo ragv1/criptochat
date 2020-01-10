@@ -3,13 +3,15 @@ const ZXing = require('nativescript-zxing');
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import * as LZString from "lz-string";
 import { UserManager } from "../shared/user-management.service";
+import { AppmanagerService } from "../shared/appmanager.service";
+import { PasswordService } from "../shared/password.service";
 
 
 @Component({
     selector: "Browse",
     templateUrl: "./browse.component.html"
 })
-export class BrowseComponent implements OnInit{
+export class BrowseComponent {
     usuario=null;
     clave=null;
     servidor=null;
@@ -18,11 +20,7 @@ export class BrowseComponent implements OnInit{
     isBusy: boolean=false;
     
     
-    constructor (private userManager:UserManager) {}
-    
-    ngOnInit(): void {
-        // this.userManager.saveSchema();
-    }
+    constructor (private userManager:UserManager, private passwordService:PasswordService, private manager:AppmanagerService) {}
 
     generateBarcode() {
         this.isBusy = true;
@@ -51,26 +49,9 @@ export class BrowseComponent implements OnInit{
             this.showBarcode=false;
         });
     }
-    onLongPress($event){
-        let oldPass;
-        dialogs.prompt({
-            title: "Sistema - Cambiar contraseña",
-            message: "Contraseña anterior",
-            inputType:dialogs.inputType.password,
-            okButtonText: "Aceptar",
-            cancelable:false
-        }).then((value:dialogs.PromptResult) => {
-            oldPass=value.text;
-            return dialogs.prompt({
-                title: "Sistema",
-                message: "Contraseña nueva.",
-                inputType:dialogs.inputType.password,
-                okButtonText: "Aceptar",
-                cancelable:false
-            })
-        }).then((value:dialogs.PromptResult) => {
-            console.log(oldPass,value.text);
-        })
+
+    onLongPress(e){
+        this.passwordService.changePassword();
     }
 
 

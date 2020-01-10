@@ -31,3 +31,12 @@ export interface LibsParams{
 export interface LibsKey extends LibsParams{
     keyHexString:string
 }
+export interface LibsEncrypResult{
+    CryptedHexString: string,
+    rawCrypted: any,
+    nonceHexString: string,
+    rawNonce: any
+}
+export interface Armor extends LibsEncrypResult{
+    status:boolean
+}

@@ -47,6 +47,7 @@ export class AppComponent implements OnInit, OnDestroy{
     }
 
     ngOnDestroy(): void {
+        clearTimeout(this.appmanager.token);
         console.log("App-Destroyed");
     }
 

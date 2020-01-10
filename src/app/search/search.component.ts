@@ -6,6 +6,7 @@ import { CommunicationService, Msg } from "../shared/communication.service";
 import { UserManager } from "../shared/user-management.service";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import { User } from "../shared/Interfaces";
+import { PasswordService } from "../shared/password.service";
 
 
 @Component({
@@ -21,7 +22,9 @@ export class SearchComponent implements OnInit {
 
     constructor(
         private userManager: UserManager,
-        private communication: CommunicationService) {
+        private communication: CommunicationService,
+        private password:PasswordService
+        ) {
         this.barcodescannerModule = new BarcodeScanner();
     }
 
@@ -82,42 +85,39 @@ export class SearchComponent implements OnInit {
     }
 
     scanBarcode() {
-        console.log(this.userManager.noKeys(), 'console.log')
-        if(this.userManager.noKeys()) return;
-        this.userManager.setPasswordSchema('','').then(v=>console.log(v))
-        // this.requestPermission()
-        // .then(() => {
-        //     return this.barcodescannerModule.scan(barcodeScannerOptions)
-        // })
-        // .then((result) => {
-        //     return this.userManager.readQrCode(result.text)
-        // })
-        // .then(newUserCreated => {
-        //     if (!newUserCreated) { return }
-        //     setTimeout(() => {
-        //         dialogs.confirm({
-        //             title: "Sistema",
-        //             message: "Nuevo usuario creado.",
-        //             okButtonText: "Aceptar"
-        //         }).then(() => {
-        //             this.refresh({ update: true });
-        //         })
-        //     }, 3000);
-        // })
-        // .catch(error => {
-        //     setTimeout(() => {
-        //         dialogs.confirm({
-        //             title: "Sistema",
-        //             message: "Error: " + error,
-        //             okButtonText: "Aceptar"
-        //         })
-        //     }, 3000);
+        this.requestPermission()
+        .then(() => {
+            return this.barcodescannerModule.scan(barcodeScannerOptions)
+        })
+        .then((result) => {
+            return this.userManager.readQrCode(result.text)
+        })
+        .then(newUserCreated => {
+            if (!newUserCreated) { return }
+            setTimeout(() => {
+                dialogs.confirm({
+                    title: "Sistema",
+                    message: "Nuevo usuario creado.",
+                    okButtonText: "Aceptar"
+                }).then(() => {
+                    this.refresh({text:"true"});
+                })
+            }, 3000);
+        })
+        .catch(error => {
+            setTimeout(() => {
+                dialogs.confirm({
+                    title: "Sistema",
+                    message: "Error: " + error,
+                    okButtonText: "Aceptar"
+                })
+            }, 3000);
 
-        // });
+        });
     }
 
-    onLongPress($event){
-        console.log("loooooonnng")
+    onLongPress(){
+        this.password.setNewPassword();
     }
 
 

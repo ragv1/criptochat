@@ -119,7 +119,7 @@ export class UserManager {
      */
     private saveUser(){
         let users: User[];
-        this.cryptograph.getSecureValue("users")
+        this.cryptograph.unlock("users")
         .then(value=>{
             users = value;
             if(!this.user){
@@ -128,7 +128,7 @@ export class UserManager {
                 users= users? users:[];
                 users.push(this.user);
             }
-            this.cryptograph.setSecureValue("users", users);
+            this.cryptograph.lock("users", users);
         });
     }
     /**
@@ -172,8 +172,6 @@ export class UserManager {
             return new Promise(resolve=>resolve(false));
         }
      }
-
-
     /**
      * Entry point of user creation
      * Returns promise stringify object containing publicKey, symetricKey and id
@@ -202,23 +200,17 @@ export class UserManager {
      * Returns a user from secure storage
      * @param id Id of the user to return
      */
-    readUser(id: string):Promise<User> {
-        return this.cryptograph.getSecureValue("users")
-        .then(users=>{
-            let usersArr: User[] = users;
-            let user = usersArr.filter(user => user.id == id);
-		    return <User>user[0];
-        });
+    async readUser(id: string):Promise<User> {
+        let users = <User[]> await this.cryptograph.unlock('users');
+        let user = users.filter(user => user.id == id);
+		return <User>user[0];
 	}
     /**
      * Returns all currently available users if user were decrypted sucessfully
      */
     async readUsers():Promise<User[]>{
-        return  this.cryptograph.getSecureValue("users")
-        .then(async cipherText=>{
-            let result =  await this.cryptograph.unlock(cipherText)
-            return result? result:[];
-        })
+        let users = <User[]> await this.cryptograph.unlock('users');
+        return users? users:[];
     }
     /**
      * Updates a user from its ID
@@ -227,14 +219,14 @@ export class UserManager {
      * @param server server uri
      */
     updateUser(id: string, displayname: string, server: string):Promise<User[]>{
-        return this.cryptograph.getSecureValue("users")
+        return this.cryptograph.unlock("users")
         .then(users=>{
             let usersArr: User[] = users;
             if (id) {   
                 let objIndex = usersArr.findIndex((obj => obj.id == id));
                 usersArr[objIndex].displayname = displayname;
                 usersArr[objIndex].server = server;
-                this.cryptograph.setSecureValue("users", usersArr);
+                this.cryptograph.lock("users", usersArr);
             }
             return usersArr;
         });
@@ -244,34 +236,11 @@ export class UserManager {
      * @param newUsers lista nueva de usuarios
      */
     deleteUser(newUsers:User[]){
-        this.cryptograph.setSecureValue("users", newUsers);
+        this.cryptograph.lock("users", newUsers);
     }
 
    
  
-
-    async setPasswordSchema(oldPasswod:string, newPassword:string){
-        return this.cryptograph.unlock( JSON.stringify({publicKey:"AAAAAA", privateKey:"babadejuanvosch+="}) )
-        // TODO:
-        // check if old parameters exist - if not ignore old password
-        // create keys with old password
-        // confirm that oldpassword can unlock content
-        // 
-        /**
-         * 
-         * if(this.create2saveKeys(oldPassword)){
-         *      if(this.unlock(this.saveKeys,"content")){
-         *              let newKeys = this.createNewkeysAndSavedparameters();
-         *              this.lock(newKeys,this.content);
-         *              this.saveKeys = newKeys
-         *      }else{
-         *          dialog(contrasena vieja Erronea, contenido no desbloqueado)
-         *      }
-         * }else{
-         *      this.creatNewkeysANdSaveParams(newPassword);
-         * }
-         */
-    }
 
 
 }
