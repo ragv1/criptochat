@@ -21,7 +21,7 @@ export interface SaveKeys{
 }
 export interface SjclParams{
     ks: number,
-    salt: string,
+    salt: BitArray|string,
     iter: number,
     iv: string
 }

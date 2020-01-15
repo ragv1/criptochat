@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { SecureStorage } from "nativescript-secure-storage";
 import * as sjcl from "sjcl";
 import { LibsodiumService } from "./libsodium.service";
-import { LibsKey, SaveKeys, LibsParams, LibsEncrypResult, Armor } from './Interfaces';
+import { LibsKey, SaveKeys, LibsParams, LibsEncrypResult, Armor, SjclParams } from './Interfaces';
 
 @Injectable({
 	providedIn: 'root'
@@ -43,12 +43,13 @@ export class EncrypService {
 		return sjcl.random.randomWords(WORDS, PARANOIA);
 	}
 	createRandomSjclKey(): string {
-		let rndSalt = sjcl.codec.hex.fromBits(this.randomize(10, 10))
-		let keyPlusSalt = this.createSjclKey2save(rndSalt, 100000);
-		return keyPlusSalt.key;
+		let rndSalt = sjcl.codec.hex.fromBits(this.randomize(10, 10));
+		let keyAndSalt = sjcl.misc.cachedPbkdf2(rndSalt);
+		let key = sjcl.codec.hex.fromBits(keyAndSalt.key);
+		return key;
 	}
-	createSjclKey2save(pass: string, iter?: number, savedParameters?: any): { salt: string, key: string } {
-		let defaults;
+	createSjclKey2save(pass: string, iter?: number, savedParameters?: SjclParams): { salt: string, key: string } {
+		let defaults:SjclParams;
 		if (!savedParameters) {
 			let salt = this.randomize(10, 10);
 			let iv = this.randomize(4, 10);
@@ -59,7 +60,10 @@ export class EncrypService {
 				iv: sjcl.codec.hex.fromBits(iv)
 			};
 			this.setSecureValue('sjclParam', defaults);
+			console.log('sjcl parametros guardados- default',defaults);
+			savedParameters=defaults;
 		}
+		console.log('sjcl parametros guardados- noDefaults',savedParameters);
 		let keyAndSalt = sjcl.misc.cachedPbkdf2(pass, savedParameters);
 		return {key:sjcl.codec.hex.fromBits(keyAndSalt.key) , salt: sjcl.codec.hex.fromBits(keyAndSalt.salt)}
 	}
@@ -117,12 +121,14 @@ export class EncrypService {
 		let finalStep = [];
 		try {
 			let content = await this.getSecureValue(name);
-			let step0 = this.beautyfy(content);
-			let step1 = this.libsSymetricDecryp(this.saveKeys.libs_key,step0);
-			let step2 = this.sjclSymetricDecryp(this.saveKeys.libs_key,step1);
-			finalStep = JSON.parse(step2)
+			if (content!=null){ 
+				let step0 = this.beautyfy(content);
+				let step1 = this.libsSymetricDecryp(this.saveKeys.libs_key,step0);
+				let step2 = this.sjclSymetricDecryp(this.saveKeys.sjcl_key,step1);
+				finalStep = JSON.parse(step2)
+			}
 		} catch (error) {
-			console.log('Error code <r001>',error);
+			console.log('Error: unlock error <r002>',error);
 		}
 		
 		return finalStep
@@ -137,7 +143,7 @@ export class EncrypService {
 		let finalStep = null;
 		try {
 			let cont = JSON.stringify(content);
-			let step1 = this.sjclSymetricEncryp(this.saveKeys.libs_key, cont);
+			let step1 = this.sjclSymetricEncryp(this.saveKeys.sjcl_key, cont);
 			let step2 = this.libsSymetricEncryp(this.saveKeys.libs_key, step1);
 			finalStep = this.uglyfy(step2);
 			this.setSecureValue(name,finalStep);	

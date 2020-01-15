@@ -1,13 +1,13 @@
-<ActionBar>
+<ActionBar (longPress)="onLongPress()">
     <Label text="Chats"></Label>
 </ActionBar>
 
-<GridLayout class="chats">
-    <ListView [items]="items">
+<!-- <GridLayout class="chats"> -->
+    <ListView [items]="items" class="chats" (longPress)="onLongPress()">
         <ng-template let-item="item">
             <StackLayout>
                 <Label [nsRouterLink]="['../item', item.id]" [text]="item.name"></Label>
             </StackLayout>
         </ng-template>
     </ListView>
-</GridLayout>
+<!-- </GridLayout> -->

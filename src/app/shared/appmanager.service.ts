@@ -9,57 +9,34 @@ import { CommunicationService } from './communication.service';
 	providedIn: 'root'
 })
 export class AppmanagerService {
-	private count: number = 0;
-	public token:number=null;
+	
 	constructor(private cryptograph: EncrypService, private com:CommunicationService) {}
 
 	closeApp(): void {
 		console.log("Clear data and Deleting Keys");
 		this.cryptograph.saveKeys.libs_key = null;
 		this.cryptograph.saveKeys.sjcl_key = null;
-		this.com.sendMessage({text:"user"});
-		this.count++;
+		this.com.sendMessage({text:"DELETE_USER"});
+		this.com.sendMessage({text:'REFRESH_USER_VIEW'});
 	}
 	
-	openApp(): number {
-		console.log(`asking user to set passwords to set keys and show data ${this.count}`);
-		this.com.sendMessage({text:"true"});
-		return setTimeout(() => {
-		    this.checkForKeys();
-		}, 3000);
-	}
 
-	checkForKeys() {
-		this.areKeysAvailable()
-			.then((available: boolean) => {
-				if (!available) {
-					return dialogs.prompt({
-						title: "Sistema",
-						message: "Inserta tu clave para continuar...",
-						inputType: dialogs.inputType.password,
-						okButtonText: "Aceptar",
-						cancelable: false
-					})
-				}else{
-					return Promise.reject("keys are availables");
-				}
-			})
-			.then((value: PromptResult) => {
-				return this.create2SaveKeys(value.text)
-			})
-			.then(sucess => {
-				if (!sucess) { 
-					dialogs.alert({
-						title: "Sistema",
-						message: "Bloqueado - clave equivocada",
-						okButtonText: "Aceptar"
-					});
-				}
-			})
-			.catch(error => {
-				console.log(error);
-			});
 
+	async createKeys(){
+		let keysAreAvailable:boolean = await this.areKeysAvailable();
+		if (keysAreAvailable) { return true;}
+		let value: PromptResult = await dialogs.prompt(
+		{
+			title: "SISTEMA",
+			message: "Inserta tu password",
+			inputType: dialogs.inputType.password,
+			okButtonText: "Aceptar",
+			cancelable: false
+		})
+		
+		let sucess = await this.create2SaveKeys(value.text)
+		return sucess;
+		
 	}
 
 	private areKeysAvailable(): Promise<boolean> {
@@ -97,6 +74,9 @@ export class AppmanagerService {
 		let { sjclParam, libsParam } = await this.getParamsFor2saveKeys();
 		let sjclParamsReady = this.checkSjclParam(sjclParam);
 		let libsParamReady = this.checkLibsParam(libsParam);
+		console.log("parametros recogidos por appmanager")
+		console.log(sjclParam)
+		console.log(libsParam)
 		if (sjclParamsReady && libsParamReady) {
 			let keyAndSalt_sjcl = this.cryptograph.createSjclKey2save(password, 100000, sjclParam);
 			let keyAndSalt_Libs: LibsKey = this.cryptograph.createLibsKey2save(password, libsParam.saltHexString);

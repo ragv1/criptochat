@@ -115,9 +115,9 @@ export class UserManager {
         }
     }
     /**
-     * Save user securely
-     */
-    private saveUser(){
+     * Save user securely 
+     */ 
+    saveUser(){
         let users: User[];
         this.cryptograph.unlock("users")
         .then(value=>{
@@ -125,7 +125,7 @@ export class UserManager {
             if(!this.user){
                 return 
             }else{
-                users= users? users:[];
+                users= users? users:[]; //TODO: REDUNDANT LINE???
                 users.push(this.user);
             }
             this.cryptograph.lock("users", users);
@@ -191,7 +191,6 @@ export class UserManager {
     consolidateNewUser():Promise<boolean>{
         let isUserCreated:boolean = this.createUser();
         if(isUserCreated){
-            this.saveUser();
             this.destroyCard();
         }
         return Promise.resolve(isUserCreated);
@@ -239,7 +238,10 @@ export class UserManager {
         this.cryptograph.lock("users", newUsers);
     }
 
-   
+   //TESTING ONLY
+   currentUser(){
+       return this.user;
+   }
  
 
 

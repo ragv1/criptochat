@@ -5,6 +5,7 @@ import * as LZString from "lz-string";
 import { UserManager } from "../shared/user-management.service";
 import { AppmanagerService } from "../shared/appmanager.service";
 import { PasswordService } from "../shared/password.service";
+import { ThrowStmt } from "@angular/compiler";
 
 
 @Component({
@@ -20,7 +21,9 @@ export class BrowseComponent {
     isBusy: boolean=false;
     
     
-    constructor (private userManager:UserManager, private passwordService:PasswordService, private manager:AppmanagerService) {}
+    constructor (private userManager:UserManager, 
+        private passwordService:PasswordService, 
+        private manager:AppmanagerService) {}
 
     generateBarcode() {
         this.isBusy = true;
@@ -36,18 +39,26 @@ export class BrowseComponent {
         }, 3000);
     }
     
-    clearBarcode(){
-        this.userManager.consolidateNewUser()
-        .then(value=>{
-            if(value){
-                dialogs.confirm({
-                    title: "Sistema",
-                    message: "Usuario Creado",
-                    okButtonText: "Aceptar"
-                });
-            }
+    async clearBarcode(){
+        try {
             this.showBarcode=false;
-        });
+            let value = await this.userManager.consolidateNewUser();
+            if(!value){ throw "Warning! - User no consolidated";}
+            let keysCreated = await this.manager.createKeys();
+            if(keysCreated){throw "Error: Could not create Keys"}
+            await this.userManager.saveUser();
+            await dialogs.confirm({
+                title: "Sistema",
+                message: "Usuario Creado",
+                okButtonText: "Aceptar"
+            });
+            
+                
+        } catch (error) {
+            console.log(error)
+        }
+            
+
     }
 
     onLongPress(e){

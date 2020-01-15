@@ -1,7 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { DataItem, DataService } from "../shared/data.service";
-import  { EncrypService }  from "../shared/encryp.service";
-import { UserManager } from "../shared/user-management.service";
+import { AppmanagerService } from "../shared/appmanager.service";
 
 
 @Component({
@@ -11,9 +10,12 @@ import { UserManager } from "../shared/user-management.service";
 export class HomeComponent implements OnInit {
     items: Array<DataItem>;
 
-    constructor(private _itemService: DataService, private userManager:UserManager) { }
+    constructor(private _itemService: DataService, private appmanager:AppmanagerService) { }
 
     ngOnInit(): void {
         this.items = this._itemService.getItems();
+    }
+    onLongPress(){
+        this.appmanager.openApp();
     }
 }

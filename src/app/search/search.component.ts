@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { registerElement } from "nativescript-angular/element-registry";
 import { BarcodeScanner } from "nativescript-barcodescanner";
 registerElement("BarcodeScanner", () => require("nativescript-barcodescanner").BarcodeScannerView);
@@ -7,6 +7,7 @@ import { UserManager } from "../shared/user-management.service";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 import { User } from "../shared/Interfaces";
 import { PasswordService } from "../shared/password.service";
+import { AppmanagerService } from "../shared/appmanager.service";
 
 
 @Component({
@@ -23,7 +24,8 @@ export class SearchComponent implements OnInit {
     constructor(
         private userManager: UserManager,
         private communication: CommunicationService,
-        private password:PasswordService
+        private password:PasswordService,
+        private appmanager:AppmanagerService
         ) {
         this.barcodescannerModule = new BarcodeScanner();
     }
@@ -38,7 +40,7 @@ export class SearchComponent implements OnInit {
     
     refresh(can: Msg) {
         if(this.userManager.noKeys()) return;
-        if (can.text=="true") {
+        if (can.text=="REFRESH_USER_VIEW") {
             this.userManager.readUsers()
             .then(users=>{
                 this.users = users;
@@ -47,7 +49,7 @@ export class SearchComponent implements OnInit {
     }
 
     eraseUsers(msg:Msg){
-        if(msg.text=="user"){
+        if(msg.text=="DELETE_USER"){
             this.users=[];
         }
     }
@@ -65,7 +67,7 @@ export class SearchComponent implements OnInit {
             let id = target.id;
             this.users = this.users.filter(user => id != user.id);
             this.userManager.deleteUser(this.users);
-            this.refresh({text:"true"});
+            this.refresh({text:"REFRESH_USER_VIEW"});
         });
         
     }
@@ -85,10 +87,18 @@ export class SearchComponent implements OnInit {
     }
 
     scanBarcode() {
+        // this.userManager.readQrCode(JSON.stringify({
+        //     id: 'BABAC0',
+		// 	   publicKey: '3F0084639FCAD6A1E5E501C888177DBB4C04B079BEBB34EE9F7C711D2E4AFD2A',
+        //     symetricKey: '44a15c4c381d31135c6748da3c2417679706f441a2e8066e74193402ca75c9e1',
+        //     privateKey:null,
+        //     otherPublicKey:null
+        // }))
+
         this.requestPermission()
         .then(() => {
             return this.barcodescannerModule.scan(barcodeScannerOptions)
-        })
+        }) 
         .then((result) => {
             return this.userManager.readQrCode(result.text)
         })
@@ -100,7 +110,15 @@ export class SearchComponent implements OnInit {
                     message: "Nuevo usuario creado.",
                     okButtonText: "Aceptar"
                 }).then(() => {
-                    this.refresh({text:"true"});
+                    console.log('Nuevo Usuario:',this.userManager.currentUser())
+                    this.appmanager.createKeys()
+                    .then(sucess=>{
+                        console.log(sucess);
+                        this.userManager.saveUser();
+                        this.refresh({text:"REFRESH_USER_VIEW"});
+                    }).catch(err=>{
+
+                    });
                 })
             }, 3000);
         })

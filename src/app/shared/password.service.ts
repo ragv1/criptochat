@@ -10,18 +10,6 @@ import { CommunicationService } from './communication.service';
 })
 export class PasswordService {
 	constructor(private cryptograph: EncrypService, private com:CommunicationService) { }
-	finalStep:any;
-	encrypt(){
-		this.cryptograph.lock('user',['user1','user2'])
-		.then(value=>{console.log(value)})
-		.catch(err=>{console.log(err)})
-	}
-
-	decrypt(){
-		this.cryptograph.unlock('user')
-		.then(value=>{console.log(value)})
-		.catch(err=>{console.log(err)})
-	}
 
 	setNewPassword() {
 		dialogs.prompt({
@@ -109,7 +97,7 @@ export class PasswordService {
 	}
 
 	private async removeAll(){
-		this.com.sendMessage({text:"user"});
+		this.com.sendMessage({text:"DELETE_USER"});
 		return this.cryptograph.removeAll()
 	}
 
